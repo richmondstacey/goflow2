@@ -15,6 +15,8 @@ services:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_DELETE_TOPIC_ENABLE=true
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://localhost:9092,EXTERNAL://localhost:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
     restart: always
     depends_on:
       - zookeeper
@@ -40,19 +42,17 @@ services:
     build:
       context: ../../
       dockerfile: Dockerfile
+    network_mode: "host"
     depends_on:
       - kafka
-    ports:
-      - "8080:8080"
-      - "6343:6343/udp"
-      - "2055:2055/udp"
     restart: always
     command: 
-    - -transport.kafka.brokers=kafka:9092
+    - -transport.kafka.brokers=localhost:9092
     - -transport=kafka
     - -transport.kafka.topic=flows
     - -format=pb
     - -format.protobuf.fixedlen=true
+    - -metrics.addr=:8081
   db:
     image: yandex/clickhouse-server:21.5.6.6
     ports:
